@@ -1,0 +1,17 @@
+<%# partial to display solr document fields in catalog index view -%>
+<% doc_presenter = index_presenter(document) %> 
+<% additional_hits = count_additional_hits(document) || 0 %>
+<dl class="document-metadata dl-horizontal dl-invert">
+
+  <% index_fields(document).each do |field_name, field| -%>
+    <% if should_render_index_field? document, field %>
+      <dt class="blacklight-<%= field_name.parameterize %>"><%= render_index_field_label document, field: field_name %></dt>
+      <dd class="blacklight-<%= field_name.parameterize %>">
+        <%= doc_presenter.field_value field_name %>
+        <% if field_name == 'extracted_text' && additional_hits > 0 %>
+          <div><i>Plus <%= pluralize(additional_hits, 'additional match') %></i></div>
+        <% end -%>
+      </dd>
+    <% end -%>
+  <% end -%>
+</dl>

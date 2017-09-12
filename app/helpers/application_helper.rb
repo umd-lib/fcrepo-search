@@ -117,4 +117,13 @@ module ApplicationHelper
       q: query
     ).to_s
   end
+
+  def count_additional_hits(document)
+    source = document[:extracted_text_source]
+    if source && @response[:expanded][source]
+      @response[:expanded][source][:numFound]
+    else
+      nil
+    end
+  end
 end

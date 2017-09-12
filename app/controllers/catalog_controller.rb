@@ -17,7 +17,8 @@ class CatalogController < ApplicationController
     # The fq parameter is conditionally overriden in app/models/search_builder.rb
     config.default_solr_params = {
       rows: 10,
-      fq: ['is_pcdm:true']
+      fq: ['is_pcdm:true', '{!collapse field=extracted_text_source nullPolicy=expand}'],
+      expand: 'true'
     }
 
     # solr path which will be added to solr base url before the other solr params.
@@ -98,14 +99,11 @@ class CatalogController < ApplicationController
 
     # solr fields to be displayed in the index (search results) view
     #   The ordering of the field names is the order of the display
-    config.add_index_field 'id', label: 'Annotation', helper_method: :link_to_document_view, if:
-    lambda { |_context, _field, document|
-      document[:rdf_type].include?('oa:Annotation')
-    }
+    config.add_index_field 'id', label: 'Annotation', helper_method: :link_to_document_view, if: :is_annotation?
     config.add_index_field 'object_type', label: 'Object Type'
     config.add_index_field 'component', label: 'Component'
     config.add_index_field 'author', label: 'Author'
-    config.add_index_field 'extracted_text', label: 'OCR', highlight: true, helper_method: :format_extracted_text, solr_params: { 'hl.fragsize' => 500 }
+    config.add_index_field 'extracted_text', label: 'OCR', highlight: true, helper_method: :format_extracted_text, solr_params: { 'hl.fragsize' => 500 }, if: :is_annotation?
     config.add_index_field 'created_by', label: 'Created By'
     config.add_index_field 'created', label: 'Created'
     config.add_index_field 'last_modified', label: 'Last Modified'
@@ -194,5 +192,9 @@ class CatalogController < ApplicationController
 
     def make_current_query_accessible
       @current_query = params[:q]
+    end
+
+    def is_annotation?(field, document)
+      document[:rdf_type].include?('oa:Annotation')
     end
 end
